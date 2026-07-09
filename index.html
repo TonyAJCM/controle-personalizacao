@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Personalização — JG1 & JG2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --jg1a:#1a1a2e; --jg1b:#16213e;
+  --jg2a:#0f3460; --jg2b:#1a4a8a;
+  --danger:#e94560;
+  --lv1:#0284c7; --lv2:#d97706; --lv3:#dc2626;
+}
+*{box-sizing:border-box;}
+body{background:#f0f2f5;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;}
+
+/* ── Navbar ── */
+.app-nav{background:linear-gradient(135deg,var(--jg1a),var(--jg2a));padding:13px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.35);position:sticky;top:0;z-index:100;}
+.app-nav .brand{color:#fff;font-size:1.15rem;font-weight:700;}
+.app-nav .sub{color:rgba(255,255,255,.55);font-size:.82rem;}
+
+/* ── Tab bar ── */
+.tab-bar{background:#fff;border-bottom:2px solid #eee;display:flex;overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:13px 18px;border:none;background:none;color:#888;font-weight:500;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:.2s;font-size:.9rem;}
+.tab-btn:hover:not(.active){color:#444;background:#f8f9fa;}
+.tab-btn.active{color:var(--danger);border-bottom-color:var(--danger);}
+
+/* ── Content ── */
+.content{padding:20px;max-width:1400px;margin:0 auto;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── Panel ── */
+.panel{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden;}
+.panel-head{padding:14px 20px;color:#fff;font-weight:600;display:flex;align-items:center;gap:10px;}
+.panel-head.jg1{background:linear-gradient(135deg,var(--jg1a),var(--jg1b));}
+.panel-head.jg2{background:linear-gradient(135deg,var(--jg2a),var(--jg2b));}
+.panel-body{padding:20px;}
+
+/* ── Section label ── */
+.sec-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:10px;margin-top:4px;}
+
+/* ── Grids ── */
+.grid-letters{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;margin-bottom:22px;}
+.grid-numbers{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin-bottom:22px;}
+.item-cell{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.item-char{font-size:1.05rem;font-weight:700;color:#333;line-height:1;}
+.item-input{width:100%;max-width:64px;text-align:center;border:2px solid #ddd;border-radius:6px;padding:4px 2px;font-size:.88rem;font-weight:600;transition:border-color .15s;}
+.item-input:focus{outline:none;border-color:var(--danger);box-shadow:0 0 0 3px rgba(233,69,96,.12);}
+.item-input.ok{border-color:#27ae60;background:#f0fff4;color:#1a7340;}
+.item-input.low{border-color:#f39c12;background:#fffdf0;color:#9a6e1a;}
+.item-input.critical{border-color:#e74c3c;background:#fff5f5;color:#c0392b;}
+.item-input.empty{border-color:#e74c3c;background:#fff0f0;color:#c0392b;font-weight:800;}
+.item-input.reg-mode{border-color:#3498db;background:#ebf5fb;color:#1a5276;}
+
+/* ── Kit control ── */
+.kit-box{display:flex;align-items:center;gap:20px;padding:16px 20px;border-radius:10px;background:#f8f9fa;margin-bottom:4px;}
+.kit-box.ok{background:#f0fff4;}
+.kit-box.low{background:#fffdf0;}
+.kit-box.critical,.kit-box.empty{background:#fff5f5;}
+.kit-box.reg-mode{background:#ebf5fb;}
+.kit-name{flex:1;}
+.kit-name strong{display:block;font-size:.95rem;}
+.kit-name small{color:#888;font-size:.78rem;}
+.qty-ctrl{display:flex;align-items:center;gap:10px;}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:2px solid #ccc;background:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1;}
+.qty-btn:hover{border-color:var(--danger);color:var(--danger);}
+.qty-val{font-size:1.6rem;font-weight:700;color:#333;min-width:52px;text-align:center;}
+
+/* ── Level badges ── */
+.lv-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:700;}
+.lv-badge.lv1{background:#e0f2fe;color:var(--lv1);}
+.lv-badge.lv2{background:#fef3c7;color:var(--lv2);}
+.lv-badge.lv3{background:#fee2e2;color:var(--lv3);}
+
+/* ── Reg level sub-nav ── */
+.lv-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.lv-nav-btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:2px solid #ddd;background:#fff;cursor:pointer;font-weight:600;font-size:.88rem;color:#555;transition:.18s;}
+.lv-nav-btn:hover:not(.active){background:#f8f9fa;border-color:#bbb;}
+.lv-nav-btn.active.lv1{border-color:var(--lv1);background:#e0f2fe;color:var(--lv1);}
+.lv-nav-btn.active.lv2{border-color:var(--lv2);background:#fef3c7;color:var(--lv2);}
+.lv-nav-btn.active.lv3{border-color:var(--lv3);background:#fee2e2;color:var(--lv3);}
+.lv-dot{width:10px;height:10px;border-radius:50%;}
+.lv-dot.lv1{background:var(--lv1);}
+.lv-dot.lv2{background:var(--lv2);}
+.lv-dot.lv3{background:var(--lv3);}
+
+/* ── Store selector ── */
+.store-selector{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);flex-wrap:wrap;}
+.store-selector label{font-weight:600;color:#555;white-space:nowrap;}
+
+/* ── Summary pills ── */
+.sum-bar{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+.sum-pill{padding:5px 12px;border-radius:16px;font-size:.78rem;font-weight:600;}
+.pill-ok{background:#d5f5e3;color:#1a7340;}
+.pill-low{background:#fef9e7;color:#9a6e1a;}
+.pill-critical{background:#fdedec;color:#922b21;}
+
+/* ── Suggestion items ── */
+.sugg-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:8px;margin-bottom:8px;}
+.sugg-move{background:#ebf5fb;border-left:4px solid #3498db;}
+.sugg-buy{background:#fef9e7;border-left:4px solid #f39c12;}
+.sugg-crit{background:#fdedec;border-left:4px solid #e74c3c;}
+.sugg-name{font-size:1.2rem;font-weight:800;min-width:38px;color:#1a1a2e;line-height:1.2;margin-top:2px;}
+.sugg-text{flex:1;font-size:.88rem;color:#555;line-height:1.5;}
+.sugg-qty{font-weight:700;color:var(--danger);font-size:1rem;white-space:nowrap;margin-top:2px;}
+
+/* ── Store cards ── */
+.store-card{display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid #eee;border-radius:10px;margin-bottom:10px;background:#fff;transition:.15s;}
+.store-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.store-icon{font-size:1.8rem;color:#ccc;}
+.store-info{flex:1;}
+.store-name{font-weight:700;color:#222;font-size:.95rem;}
+.store-meta{font-size:.78rem;color:#999;margin-top:3px;}
+.store-actions{display:flex;gap:6px;}
+
+/* ── Table ── */
+.sugg-table{width:100%;border-collapse:collapse;font-size:.88rem;}
+.sugg-table thead th{padding:8px 12px;background:#f8f9fa;color:#888;text-transform:uppercase;font-size:.7rem;letter-spacing:1px;border-bottom:2px solid #eee;}
+.sugg-table tbody td{padding:9px 12px;border-bottom:1px solid #f0f0f0;}
+.sugg-table tbody tr:last-child td{border-bottom:none;}
+.sugg-table tbody tr:hover td{background:#fafafa;}
+
+/* ── Filter bar ── */
+.filter-bar{background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
+.modal-box{background:#fff;border-radius:14px;padding:28px;width:90%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.modal-box h5{font-weight:700;margin-bottom:20px;color:#1a1a2e;}
+
+/* ── Level select ── */
+.lv-select-group{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+.lv-radio{display:none;}
+.lv-radio-label{display:flex;flex-direction:column;align-items:center;padding:10px 6px;border:2px solid #ddd;border-radius:10px;cursor:pointer;transition:.15s;text-align:center;}
+.lv-radio-label .lv-icon{font-size:1.3rem;margin-bottom:4px;}
+.lv-radio-label span{font-size:.78rem;font-weight:600;color:#555;}
+.lv-radio-label small{font-size:.68rem;color:#aaa;}
+.lv-radio:checked + .lv-radio-label.lv1{border-color:var(--lv1);background:#e0f2fe;color:var(--lv1);}
+.lv-radio:checked + .lv-radio-label.lv2{border-color:var(--lv2);background:#fef3c7;color:var(--lv2);}
+.lv-radio:checked + .lv-radio-label.lv3{border-color:var(--lv3);background:#fee2e2;color:var(--lv3);}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:2000;display:none;}
+.toast-inner{background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:.88rem;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:60px 20px;color:#bbb;}
+.empty-state i{font-size:3rem;margin-bottom:14px;display:block;}
+.empty-state h4{color:#999;font-size:1.1rem;}
+
+/* ── Info box ── */
+.info-box{background:#ebf5fb;border-left:4px solid #3498db;padding:12px 16px;border-radius:0 8px 8px 0;font-size:.88rem;color:#1a5276;margin-bottom:18px;}
+
+/* ── Responsive ── */
+@media(max-width:576px){
+  .grid-numbers{grid-template-columns:repeat(5,1fr);}
+  .content{padding:12px;}
+  .tab-btn{padding:10px 11px;font-size:.8rem;}
+  .grid-letters{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));}
+  .lv-select-group{gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<div class="app-nav">
+  <div class="brand"><i class="fas fa-tshirt me-2"></i>Controle de Personalização</div>
+  <div class="sub">Camisas JG1 &amp; JG2</div>
+</div>
+
+<!-- ═══════════════ TABS ═══════════════ -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" data-tab="estoque"><i class="fas fa-boxes me-1"></i>Estoque</button>
+  <button class="tab-btn" data-tab="regulador"><i class="fas fa-sliders-h me-1"></i>Est. Regulador</button>
+  <button class="tab-btn" data-tab="remanejamento"><i class="fas fa-exchange-alt me-1"></i>Remanejamento</button>
+  <button class="tab-btn" data-tab="compra"><i class="fas fa-shopping-cart me-1"></i>Compra</button>
+  <button class="tab-btn" data-tab="lojas"><i class="fas fa-store me-1"></i>Lojas</button>
+</div>
+
+<!-- ═══════════════ CONTENT ═══════════════ -->
+<div class="content">
+  <div class="tab-pane active" id="pane-estoque"></div>
+  <div class="tab-pane"        id="pane-regulador"></div>
+  <div class="tab-pane"        id="pane-remanejamento"></div>
+  <div class="tab-pane"        id="pane-compra"></div>
+  <div class="tab-pane"        id="pane-lojas"></div>
+</div>
+
+<!-- ═══════════════ MODAL LOJA ═══════════════ -->
+<div class="modal-overlay" id="storeModal" onclick="handleModalClick(event)">
+  <div class="modal-box">
+    <h5 id="storeModalTitle">Cadastrar Loja</h5>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Nome da Loja <span class="text-danger">*</span></label>
+      <input type="text" id="storeNameInput" class="form-control" placeholder="Ex.: Loja Central">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Endereço</label>
+      <input type="text" id="storeAddrInput" class="form-control" placeholder="Rua, número, bairro, cidade">
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label fw-semibold">Telefone</label>
+        <input type="text" id="storePhoneInput" class="form-control" placeholder="(00) 00000-0000">
+      </div>
+      <div class="col-6">
+        <label class="form-label fw-semibold">Responsável</label>
+        <input type="text" id="storeContactInput" class="form-control" placeholder="Nome">
+      </div>
+    </div>
+
+    <!-- Regulador Level selector -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Estoque Regulador da Loja</label>
+      <div class="lv-select-group">
+        <div>
+          <input type="radio" name="storeLevel" id="lvR1" class="lv-radio" value="1" checked>
+          <label for="lvR1" class="lv-radio-label lv1">
+            <span class="lv-icon">🔵</span>
+            <span>Regulador 1</span>
+            <small>Baixo volume</small>
+          </label>
+        </div>
+        <div>
+          <input type="radio" name="storeLevel" id="lvR2" class="lv-radio" value="2">
+          <label for="lvR2" class="lv-radio-label lv2">
+            <span class="lv-icon">🟡</span>
+            <span>Regulador 2</span>
+            <small>Médio volume</small>
+          </label>
+        </div>
+        <div>
+          <input type="radio" name="storeLevel" id="lvR3" class="lv-radio" value="3">
+          <label for="lvR3" class="lv-radio-label lv3">
+            <span class="lv-icon">🔴</span>
+            <span>Regulador 3</span>
+            <small>Alto volume</small>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4">
+      <button class="btn btn-outline-secondary" onclick="closeStoreModal()">Cancelar</button>
+      <button class="btn btn-danger" onclick="saveStore()"><i class="fas fa-save me-1"></i>Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast-wrap" id="toast">
+  <div class="toast-inner">
+    <i class="fas fa-check-circle" style="color:#27ae60"></i>
+    <span id="toastMsg"></span>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════ */
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const NUMBERS = ['0','1','2','3','4','5','6','7','8','9'];
+const JERSEYS = ['JG1','JG2'];
+const STORAGE_KEY = 'perso_app_v3';
+
+const LV_LABELS = {
+  1: { name:'Regulador 1', short:'Reg. 1', css:'lv1', icon:'🔵', desc:'Baixo volume' },
+  2: { name:'Regulador 2', short:'Reg. 2', css:'lv2', icon:'🟡', desc:'Médio volume' },
+  3: { name:'Regulador 3', short:'Reg. 3', css:'lv3', icon:'🔴', desc:'Alto volume'  }
+};
+
+const DEFAULT_KITS = { 1:5, 2:10, 3:20 };
+const DEFAULT_ITEM = { 1:3,  2:5,  3:10 };
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let S = {
+  stores: [],
+  stock: {},
+  regulatory: {
+    1: { JG1:{letters:{},numbers:{},kits:5 }, JG2:{letters:{},numbers:{},kits:5 } },
+    2: { JG1:{letters:{},numbers:{},kits:10}, JG2:{letters:{},numbers:{},kits:10} },
+    3: { JG1:{letters:{},numbers:{},kits:20}, JG2:{letters:{},numbers:{},kits:20} }
+  },
+  currentStoreId: null,
+  editingStoreId: null
+};
+
+let activeRegLevel = 1; // sub-nav for regulador tab
+
+function loadState() {
+  try {
+    // Try current key; fall back to previous keys if no stores found
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw || !(JSON.parse(raw)?.stores?.length)) {
+      raw = localStorage.getItem('perso_app_v2') || localStorage.getItem('perso_app_v1') || raw;
+    }
+
+    if (raw) {
+      const d = JSON.parse(raw);
+      S.stores           = d.stores    || [];
+      S.stock            = d.stock     || {};
+      S.currentStoreId   = d.currentStoreId || null;
+
+      // Migrate old single-level regulatory to new 3-level format
+      if (d.regulatory) {
+        if (d.regulatory[1] || d.regulatory[2] || d.regulatory[3]) {
+          S.regulatory = d.regulatory;
+        } else if (d.regulatory.JG1) {
+          // Old format — put into level 2, keep 1 and 3 as defaults
+          S.regulatory[2] = d.regulatory;
+        }
+      }
+    }
+  } catch(e) { console.error('load',e); }
+
+  // Ensure all defaults
+  [1,2,3].forEach(lv => {
+    if (!S.regulatory[lv]) S.regulatory[lv] = {
+      JG1:{letters:{},numbers:{},kits:DEFAULT_KITS[lv]},
+      JG2:{letters:{},numbers:{},kits:DEFAULT_KITS[lv]}
+    };
+    JERSEYS.forEach(j => {
+      if (!S.regulatory[lv][j]) S.regulatory[lv][j] = {letters:{},numbers:{},kits:DEFAULT_KITS[lv]};
+      LETTERS.forEach(l => { if (S.regulatory[lv][j].letters[l]==null) S.regulatory[lv][j].letters[l]=DEFAULT_ITEM[lv]; });
+      NUMBERS.forEach(n => { if (S.regulatory[lv][j].numbers[n]==null) S.regulatory[lv][j].numbers[n]=DEFAULT_ITEM[lv]; });
+      if (S.regulatory[lv][j].kits==null) S.regulatory[lv][j].kits=DEFAULT_KITS[lv];
+    });
+    // ensure stores have a level
+  });
+  S.stores.forEach(st => { if (!st.regulatorLevel) st.regulatorLevel = 1; });
+
+  if (!S.currentStoreId && S.stores.length) S.currentStoreId = S.stores[0].id;
+}
+
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e) { console.error('save',e); }
+}
+
+/* ═══════════════════════════════════════════
+   STOCK / REG HELPERS
+═══════════════════════════════════════════ */
+function getStock(storeId, jersey, type, key) {
+  try {
+    if (type==='kits') return S.stock?.[storeId]?.[jersey]?.kits ?? 0;
+    return S.stock?.[storeId]?.[jersey]?.[type]?.[key] ?? 0;
+  } catch { return 0; }
+}
+
+function setStock(storeId, jersey, type, key, val) {
+  val = Math.max(0, val);
+  if (!S.stock[storeId]) S.stock[storeId]={};
+  if (!S.stock[storeId][jersey]) S.stock[storeId][jersey]={letters:{},numbers:{},kits:0};
+  if (type==='kits') { S.stock[storeId][jersey].kits=val; }
+  else {
+    if (!S.stock[storeId][jersey][type]) S.stock[storeId][jersey][type]={};
+    S.stock[storeId][jersey][type][key]=val;
+  }
+  persist();
+}
+
+function getStoreLevel(storeId) {
+  return S.stores.find(s=>s.id===storeId)?.regulatorLevel || 1;
+}
+
+function getRegForStore(storeId, jersey, type, key) {
+  return getRegForLevel(getStoreLevel(storeId), jersey, type, key);
+}
+
+function getRegForLevel(lv, jersey, type, key) {
+  if (type==='kits') return S.regulatory[lv]?.[jersey]?.kits ?? DEFAULT_KITS[lv];
+  return S.regulatory[lv]?.[jersey]?.[type]?.[key] ?? DEFAULT_ITEM[lv];
+}
+
+function setRegForLevel(lv, jersey, type, key, val) {
+  val = Math.max(0, val);
+  if (type==='kits') S.regulatory[lv][jersey].kits = val;
+  else S.regulatory[lv][jersey][type][key] = val;
+  persist();
+}
+
+function stockClass(stock, reg) {
+  if (stock===0)       return 'empty';
+  if (stock>=reg)      return 'ok';
+  if (stock>=reg*.5)   return 'low';
+  return 'critical';
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, icon='fa-check-circle', color='#27ae60') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.querySelector('i').className = `fas ${icon}`;
+  t.querySelector('i').style.color = color;
+  t.style.display = 'flex';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.style.display='none', 3000);
+}
+
+function allItems() {
+  return [
+    ...LETTERS.map(l=>({type:'letters',key:l,   label:l})),
+    ...NUMBERS.map(n=>({type:'numbers',key:n,   label:n})),
+    {type:'kits',key:null,label:'Kit Patr.'}
+  ];
+}
+
+function lvBadge(lv) {
+  const info = LV_LABELS[lv];
+  return `<span class="lv-badge ${info.css}">${info.icon} ${info.short}</span>`;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — ESTOQUE
+═══════════════════════════════════════════ */
+function renderEstoque() {
+  const el = document.getElementById('pane-estoque');
+  if (!S.stores.length) {
+    el.innerHTML = `<div class="empty-state">
+      <i class="fas fa-store-slash"></i>
+      <h4>Nenhuma loja cadastrada</h4>
+      <p>Vá até a aba <strong>Lojas</strong> e cadastre pelo menos uma loja.</p>
+      <button class="btn btn-danger mt-2" onclick="switchTab('lojas')"><i class="fas fa-plus me-1"></i>Cadastrar Loja</button>
+    </div>`;
+    return;
+  }
+
+  const lv  = getStoreLevel(S.currentStoreId);
+  const sum = storeSummary(S.currentStoreId);
+
+  let html = `<div class="store-selector">
+    <i class="fas fa-store text-muted"></i>
+    <label>Loja:</label>
+    <select class="form-select form-select-sm" style="max-width:280px" onchange="selectStore(this.value)">`;
+  S.stores.forEach(st => {
+    const lvi = LV_LABELS[st.regulatorLevel||1];
+    html += `<option value="${st.id}" ${S.currentStoreId===st.id?'selected':''}>${esc(st.name)} — ${lvi.short}</option>`;
+  });
+  html += `</select>
+    ${lvBadge(lv)}
+    <div class="sum-bar ms-auto">
+      <span class="sum-pill pill-ok"><i class="fas fa-check me-1"></i>${sum.ok} ok</span>
+      <span class="sum-pill pill-low"><i class="fas fa-exclamation me-1"></i>${sum.low} baixo</span>
+      <span class="sum-pill pill-critical"><i class="fas fa-times me-1"></i>${sum.critical} crítico</span>
+    </div>
+  </div>`;
+
+  JERSEYS.forEach(j => { html += jerseyStockPanel(S.currentStoreId, j); });
+  el.innerHTML = html;
+}
+
+function storeSummary(storeId) {
+  let ok=0,low=0,critical=0;
+  JERSEYS.forEach(j => {
+    allItems().forEach(({type,key}) => {
+      const c = stockClass(getStock(storeId,j,type,key), getRegForStore(storeId,j,type,key));
+      if (c==='ok') ok++; else if (c==='low') low++; else critical++;
+    });
+  });
+  return {ok,low,critical};
+}
+
+function jerseyStockPanel(storeId, jersey) {
+  const jc = jersey==='JG1'?'jg1':'jg2';
+  let html = `<div class="panel">
+    <div class="panel-head ${jc}">
+      <i class="fas fa-tshirt"></i><span>Camisa <strong>${jersey}</strong></span>
+    </div>
+    <div class="panel-body">`;
+
+  // Letters
+  html += `<div class="sec-label"><i class="fas fa-font me-1"></i>Letras — A até Z</div>
+  <div class="grid-letters">`;
+  LETTERS.forEach(l => {
+    const st=getStock(storeId,jersey,'letters',l), reg=getRegForStore(storeId,jersey,'letters',l), cls=stockClass(st,reg);
+    html += `<div class="item-cell">
+      <span class="item-char">${l}</span>
+      <input type="number" min="0" class="item-input ${cls}" value="${st}" title="Regulador: ${reg}"
+        onchange="doSetStock('${storeId}','${jersey}','letters','${l}',this)">
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Numbers
+  html += `<div class="sec-label"><i class="fas fa-hashtag me-1"></i>Números — 0 a 9</div>
+  <div class="grid-numbers">`;
+  NUMBERS.forEach(n => {
+    const st=getStock(storeId,jersey,'numbers',n), reg=getRegForStore(storeId,jersey,'numbers',n), cls=stockClass(st,reg);
+    html += `<div class="item-cell">
+      <span class="item-char">${n}</span>
+      <input type="number" min="0" class="item-input ${cls}" value="${st}" title="Regulador: ${reg}"
+        onchange="doSetStock('${storeId}','${jersey}','numbers','${n}',this)">
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Kit
+  const ks=getStock(storeId,jersey,'kits',null), kr=getRegForStore(storeId,jersey,'kits',null), kc=stockClass(ks,kr);
+  html += `<div class="sec-label"><i class="fas fa-star me-1"></i>Kit Patrocínio</div>
+  <div class="kit-box ${kc}">
+    <div class="kit-name">
+      <strong>Kit Patrocínio Completo</strong>
+      <small>Regulador desta loja: ${kr} unidades</small>
+    </div>
+    <div class="qty-ctrl">
+      <button class="qty-btn" onclick="adjKit('${storeId}','${jersey}',-1)">−</button>
+      <div class="qty-val" id="kit-${storeId}-${jersey}">${ks}</div>
+      <button class="qty-btn" onclick="adjKit('${storeId}','${jersey}',1)">+</button>
+    </div>
+  </div>`;
+
+  html += `</div></div>`;
+  return html;
+}
+
+function doSetStock(storeId, jersey, type, key, input) {
+  const val = Math.max(0, parseInt(input.value)||0);
+  input.value = val;
+  setStock(storeId, jersey, type, key, val);
+  input.className = `item-input ${stockClass(val, getRegForStore(storeId,jersey,type,key))}`;
+  refreshSummaryBar();
+}
+
+function adjKit(storeId, jersey, delta) {
+  const cur = getStock(storeId,jersey,'kits',null);
+  const nv  = Math.max(0, cur+delta);
+  setStock(storeId, jersey, 'kits', null, nv);
+  const el = document.getElementById(`kit-${storeId}-${jersey}`);
+  if (el) {
+    el.textContent = nv;
+    const box = el.closest('.kit-box');
+    if (box) box.className = `kit-box ${stockClass(nv, getRegForStore(storeId,jersey,'kits',null))}`;
+  }
+  refreshSummaryBar();
+}
+
+function refreshSummaryBar() {
+  const bar = document.querySelector('.sum-bar');
+  if (!bar) return;
+  const s = storeSummary(S.currentStoreId);
+  bar.innerHTML = `
+    <span class="sum-pill pill-ok"><i class="fas fa-check me-1"></i>${s.ok} ok</span>
+    <span class="sum-pill pill-low"><i class="fas fa-exclamation me-1"></i>${s.low} baixo</span>
+    <span class="sum-pill pill-critical"><i class="fas fa-times me-1"></i>${s.critical} crítico</span>`;
+}
+
+function selectStore(id) {
+  S.currentStoreId = id;
+  persist();
+  renderEstoque();
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — ESTOQUE REGULADOR
+═══════════════════════════════════════════ */
+function renderRegulador() {
+  const el = document.getElementById('pane-regulador');
+
+  // Which stores use each level
+  const storesByLevel = {1:[],2:[],3:[]};
+  S.stores.forEach(st => storesByLevel[st.regulatorLevel||1].push(st.name));
+
+  let html = `<div class="info-box">
+    <i class="fas fa-info-circle me-2"></i>
+    Defina a quantidade mínima de cada item para cada nível de regulador.
+    Cada loja é associada a um nível conforme seu potencial de venda — configure na aba <strong>Lojas</strong>.
+  </div>`;
+
+  // Sub-nav
+  html += `<div class="lv-nav">`;
+  [1,2,3].forEach(lv => {
+    const info = LV_LABELS[lv];
+    const active = activeRegLevel===lv ? `active ${info.css}` : '';
+    const stores = storesByLevel[lv];
+    const storeTag = stores.length
+      ? `<small style="font-size:.7rem;opacity:.8">${stores.slice(0,2).map(esc).join(', ')}${stores.length>2?` +${stores.length-2}`:''}</small>`
+      : `<small style="font-size:.7rem;opacity:.6">Sem lojas</small>`;
+    html += `<button class="lv-nav-btn ${active}" onclick="selectRegLevel(${lv})">
+      <span class="lv-dot ${info.css}"></span>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
+        <span>${info.name}</span>
+        ${storeTag}
+      </div>
+    </button>`;
+  });
+  html += `</div>`;
+
+  // Panels for active level
+  const lv = activeRegLevel;
+  const info = LV_LABELS[lv];
+  html += `<div style="background:${lv===1?'#e0f2fe':lv===2?'#fef3c7':'#fee2e2'};border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:1.3rem">${info.icon}</span>
+    <div>
+      <strong style="color:${lv===1?'var(--lv1)':lv===2?'var(--lv2)':'var(--lv3)'}">${info.name} — ${info.desc}</strong>
+      <div style="font-size:.8rem;color:#666;margin-top:2px;">
+        Lojas com este regulador: ${storesByLevel[lv].length ? storesByLevel[lv].map(esc).join(', ') : '<em>Nenhuma</em>'}
+      </div>
+    </div>
+  </div>`;
+
+  JERSEYS.forEach(j => {
+    const jc = j==='JG1'?'jg1':'jg2';
+    let letHtml = `<div class="sec-label"><i class="fas fa-font me-1"></i>Letras — A até Z</div><div class="grid-letters">`;
+    LETTERS.forEach(l => {
+      const reg = getRegForLevel(lv,j,'letters',l);
+      letHtml += `<div class="item-cell">
+        <span class="item-char">${l}</span>
+        <input type="number" min="0" class="item-input reg-mode" value="${reg}"
+          onchange="doSetReg(${lv},'${j}','letters','${l}',this)">
+      </div>`;
+    });
+    letHtml += `</div>`;
+
+    let numHtml = `<div class="sec-label"><i class="fas fa-hashtag me-1"></i>Números — 0 a 9</div><div class="grid-numbers">`;
+    NUMBERS.forEach(n => {
+      const reg = getRegForLevel(lv,j,'numbers',n);
+      numHtml += `<div class="item-cell">
+        <span class="item-char">${n}</span>
+        <input type="number" min="0" class="item-input reg-mode" value="${reg}"
+          onchange="doSetReg(${lv},'${j}','numbers','${n}',this)">
+      </div>`;
+    });
+    numHtml += `</div>`;
+
+    const kr = getRegForLevel(lv,j,'kits',null);
+    const kitHtml = `<div class="sec-label"><i class="fas fa-star me-1"></i>Kit Patrocínio</div>
+    <div class="kit-box reg-mode">
+      <div class="kit-name"><strong>Kit Patrocínio Completo</strong><small>Mínimo por loja com ${info.name}</small></div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" style="border-color:#3498db" onclick="adjRegLevel(${lv},'${j}','kits',null,-1)">−</button>
+        <div class="qty-val" id="regkit-${lv}-${j}" style="color:#1a5276">${kr}</div>
+        <button class="qty-btn" style="border-color:#3498db" onclick="adjRegLevel(${lv},'${j}','kits',null,1)">+</button>
+      </div>
+    </div>`;
+
+    html += `<div class="panel">
+      <div class="panel-head ${jc}">
+        <i class="fas fa-tshirt"></i>
+        <span>Camisa <strong>${j}</strong></span>
+      </div>
+      <div class="panel-body">${letHtml}${numHtml}${kitHtml}</div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function selectRegLevel(lv) {
+  activeRegLevel = lv;
+  renderRegulador();
+}
+
+function doSetReg(lv, jersey, type, key, input) {
+  const val = Math.max(0, parseInt(input.value)||0);
+  input.value = val;
+  setRegForLevel(lv, jersey, type, key, val);
+}
+
+function adjRegLevel(lv, jersey, type, key, delta) {
+  const cur = getRegForLevel(lv, jersey, type, key);
+  const nv  = Math.max(0, cur+delta);
+  setRegForLevel(lv, jersey, type, key, nv);
+  if (type==='kits') {
+    const el = document.getElementById(`regkit-${lv}-${jersey}`);
+    if (el) el.textContent = nv;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — REMANEJAMENTO
+═══════════════════════════════════════════ */
+function renderRemanejamento() {
+  const el = document.getElementById('pane-remanejamento');
+  if (S.stores.length < 2) {
+    el.innerHTML = `<div class="empty-state">
+      <i class="fas fa-exchange-alt"></i>
+      <h4>Mínimo de 2 lojas necessário</h4>
+      <p>Cadastre ao menos 2 lojas para ver sugestões de remanejamento.</p>
+      <button class="btn btn-danger mt-2" onclick="switchTab('lojas')"><i class="fas fa-plus me-1"></i>Cadastrar Lojas</button>
+    </div>`;
+    return;
+  }
+
+  const suggs = calcRemanejamento();
+  if (!suggs.length) {
+    el.innerHTML = `<div class="empty-state">
+      <i class="fas fa-check-circle" style="color:#27ae60"></i>
+      <h4>Estoque equilibrado!</h4>
+      <p>Nenhum remanejamento necessário. Todas as lojas estão dentro dos seus níveis reguladores.</p>
+    </div>`;
+    return;
+  }
+
+  let html = `<div class="filter-bar">
+    <i class="fas fa-lightbulb" style="color:#f39c12"></i>
+    <strong>Sugestões de Remanejamento</strong>
+    <span class="badge bg-warning text-dark ms-1">${suggs.length}</span>
+    <span class="text-muted ms-2" style="font-size:.83rem">Cada loja usa seu próprio regulador para calcular excedente/déficit</span>
+  </div>`;
+
+  JERSEYS.forEach(j => {
+    const js = suggs.filter(s=>s.jersey===j);
+    if (!js.length) return;
+    html += `<div class="panel">
+      <div class="panel-head ${j==='JG1'?'jg1':'jg2'}">
+        <i class="fas fa-tshirt"></i> Camisa ${j} — <span style="font-weight:400">${js.length} sugestão(ões)</span>
+      </div>
+      <div class="panel-body">`;
+    js.forEach(s => {
+      html += `<div class="sugg-item sugg-move">
+        <div class="sugg-name">${esc(s.item)}</div>
+        <div class="sugg-text">
+          ${lvBadge(s.fromLv)} <strong>${esc(s.from)}</strong> (estoque: ${s.fromQty} | reg: ${s.fromReg})
+          <i class="fas fa-arrow-right mx-2 text-primary"></i>
+          ${lvBadge(s.toLv)} <strong>${esc(s.to)}</strong> (estoque: ${s.toQty} | reg: ${s.toReg})
+          <br><small style="color:#aaa">Excedente origem: ${s.surplus} &nbsp;|&nbsp; Déficit destino: ${s.deficit}</small>
+        </div>
+        <div class="sugg-qty">${s.move} unid.</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function calcRemanejamento() {
+  const res = [];
+  JERSEYS.forEach(j => {
+    allItems().forEach(({type,key,label}) => {
+      const perStore = S.stores.map(st => {
+        const reg = getRegForStore(st.id,j,type,key);
+        const qty = getStock(st.id,j,type,key);
+        return { st, qty, reg, surplus: qty - reg };
+      });
+      const givers = perStore.filter(d=>d.surplus>0);
+      const takers = perStore.filter(d=>d.surplus<0);
+      givers.forEach(g => {
+        takers.forEach(t => {
+          const move = Math.min(g.surplus, Math.abs(t.surplus));
+          if (move>0) res.push({
+            jersey:j, item:label,
+            from:g.st.name, fromQty:g.qty, fromReg:g.reg, fromLv:g.st.regulatorLevel||1, surplus:g.surplus,
+            to:t.st.name,   toQty:t.qty,   toReg:t.reg,   toLv:t.st.regulatorLevel||1,   deficit:Math.abs(t.surplus),
+            move
+          });
+        });
+      });
+    });
+  });
+  return res;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — COMPRA
+═══════════════════════════════════════════ */
+function renderCompra() {
+  const el = document.getElementById('pane-compra');
+
+  const storeOpts = S.stores.map(st =>
+    `<option value="${st.id}">${esc(st.name)} — ${LV_LABELS[st.regulatorLevel||1].short}</option>`
+  ).join('');
+
+  const excelBtn = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#fff;border-radius:12px;padding:14px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <i class="fas fa-file-excel" style="color:#27ae60;font-size:1.2rem"></i>
+    <strong style="color:#333;white-space:nowrap">Gerar Planilha</strong>
+    <div style="flex:1;min-width:200px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="reportStoreSelect" class="form-select form-select-sm" style="max-width:260px">
+        <option value="">— Escolher loja —</option>
+        ${storeOpts}
+      </select>
+      <button class="btn btn-outline-success btn-sm" onclick="generateReportPorLoja()" style="white-space:nowrap">
+        <i class="fas fa-store me-1"></i>Reposição por Loja
+      </button>
+    </div>
+    <button class="btn btn-success btn-sm ms-auto" onclick="generateReport()" style="white-space:nowrap">
+      <i class="fas fa-globe me-1"></i>Reposição Total (todas as lojas)
+    </button>
+  </div>`;
+
+  if (!S.stores.length) {
+    el.innerHTML = excelBtn + `<div class="empty-state">
+      <i class="fas fa-shopping-cart"></i>
+      <h4>Nenhuma loja cadastrada</h4>
+    </div>`;
+    return;
+  }
+
+  let html = excelBtn;
+
+  // Monta tabela pivô: Item × Lojas + Total
+  // Só exibe linhas onde pelo menos 1 loja tem déficit
+  let grandTotal = 0;
+  let anyDeficit = false;
+
+  JERSEYS.forEach(j => {
+    const pivotRows = [];
+
+    allItems().forEach(({type, key, label}) => {
+      const storeDefs = S.stores.map(st =>
+        Math.max(0, getRegForStore(st.id, j, type, key) - getStock(st.id, j, type, key))
+      );
+      const rowTotal = storeDefs.reduce((s, d) => s + d, 0);
+      if (rowTotal > 0) {
+        pivotRows.push({ label, storeDefs, rowTotal });
+        grandTotal += rowTotal;
+        anyDeficit = true;
+      }
+    });
+
+    if (!pivotRows.length) return;
+
+    // Cabeçalho de lojas
+    const storeHeaders = S.stores.map(st => {
+      const lv = LV_LABELS[st.regulatorLevel||1];
+      return `<th style="white-space:nowrap;text-align:center">
+        ${esc(st.name)}<br>
+        <span style="font-size:.65rem;font-weight:400;opacity:.75">${lv.short}</span>
+      </th>`;
+    }).join('');
+
+    // Linhas da tabela
+    const bodyRows = pivotRows.map(({label, storeDefs, rowTotal}) => {
+      const storeCells = storeDefs.map(d =>
+        d > 0
+          ? `<td style="text-align:center;font-weight:700;color:#e74c3c;background:${d > (rowTotal * .5) ? '#fff5f5' : '#fffdf0'}">${d}</td>`
+          : `<td style="text-align:center;color:#ccc">—</td>`
+      ).join('');
+      return `<tr>
+        <td><strong style="font-size:1rem">${esc(label)}</strong></td>
+        ${storeCells}
+        <td style="text-align:center;font-weight:800;color:#c0392b;background:#fde8e8;font-size:1rem">${rowTotal}</td>
+      </tr>`;
+    }).join('');
+
+    const jerseyTotal = pivotRows.reduce((s, r) => s + r.rowTotal, 0);
+
+    html += `<div class="panel" style="margin-bottom:24px">
+      <div class="panel-head ${j==='JG1'?'jg1':'jg2'}" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div><i class="fas fa-tshirt me-2"></i>Camisa <strong>${j}</strong></div>
+        <span class="badge bg-danger" style="font-size:.85rem">${jerseyTotal} unid. a comprar</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="sugg-table" style="min-width:${300 + S.stores.length * 110}px">
+          <thead>
+            <tr>
+              <th style="min-width:60px">Item</th>
+              ${storeHeaders}
+              <th style="background:#fde8e8;color:#c0392b;text-align:center;white-space:nowrap">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  if (!anyDeficit) {
+    html += `<div class="empty-state">
+      <i class="fas fa-check-circle" style="color:#27ae60"></i>
+      <h4>Estoque suficiente!</h4>
+      <p>Nenhuma reposição necessária. Todos os itens estão dentro dos reguladores.</p>
+    </div>`;
+  } else {
+    html = excelBtn + `<div class="filter-bar" style="margin-bottom:16px">
+      <i class="fas fa-shopping-cart" style="color:#e74c3c;font-size:1.1rem"></i>
+      <strong>Reposição Total</strong>
+      <span class="badge bg-danger ms-1" style="font-size:.85rem">${grandTotal} unidades</span>
+      <span class="text-muted ms-2" style="font-size:.83rem">Soma de todas as lojas e itens com déficit</span>
+    </div>` + html.slice(excelBtn.length);
+  }
+
+  el.innerHTML = html;
+}
+
+function calcCompra() {
+  if (!S.stores.length) return [];
+  const res = [];
+  JERSEYS.forEach(j => {
+    allItems().forEach(({type,key,label}) => {
+      const totalNeeded = S.stores.reduce((s,st)=>s+getRegForStore(st.id,j,type,key),0);
+      const totalStock  = S.stores.reduce((s,st)=>s+getStock(st.id,j,type,key),0);
+      if (totalStock < totalNeeded) {
+        res.push({ jersey:j, item:label, totalStock, totalNeeded, deficit:totalNeeded-totalStock, suggest:totalNeeded-totalStock });
+      }
+    });
+  });
+  return res;
+}
+
+function calcCompraPorLoja() {
+  return S.stores.map(st => {
+    const items = [];
+    JERSEYS.forEach(j => {
+      allItems().forEach(({type,key,label}) => {
+        const stock  = getStock(st.id, j, type, key);
+        const reg    = getRegForStore(st.id, j, type, key);
+        const deficit = Math.max(0, reg - stock);
+        if (deficit > 0) items.push({ jersey:j, item:label, stock, reg, deficit });
+      });
+    });
+    return { store: st, items };
+  });
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — LOJAS
+═══════════════════════════════════════════ */
+function renderLojas() {
+  const el = document.getElementById('pane-lojas');
+  let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-bold" style="color:#1a1a2e">Lojas Cadastradas</h5>
+    <button class="btn btn-danger btn-sm" onclick="openStoreModal()"><i class="fas fa-plus me-1"></i>Nova Loja</button>
+  </div>
+  <div class="info-box mb-3">
+    <i class="fas fa-info-circle me-2"></i>
+    Cada loja pode ter um <strong>Estoque Regulador</strong> diferente (1, 2 ou 3) conforme seu potencial de venda.
+    Configure os valores de cada nível na aba <strong>Est. Regulador</strong>.
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:16px 20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:12px">Fluxo de Contagem por Loja</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <div style="background:#e0f2fe;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#0284c7;font-weight:600">
+        <i class="fas fa-file-export me-1"></i>1. Clique em <strong><i class="fas fa-file-export"></i></strong> → baixa formulário .html
+      </div>
+      <i class="fas fa-arrow-right text-muted"></i>
+      <div style="background:#f0fdf4;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#16a34a;font-weight:600">
+        <i class="fas fa-whatsapp me-1"></i>2. Envie o .html para o gerente (WhatsApp/e-mail)
+      </div>
+      <i class="fas fa-arrow-right text-muted"></i>
+      <div style="background:#fefce8;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#ca8a04;font-weight:600">
+        <i class="fas fa-keyboard me-1"></i>3. Gerente preenche e baixa o .json
+      </div>
+      <i class="fas fa-arrow-right text-muted"></i>
+      <div style="background:#fdf4ff;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#9333ea;font-weight:600">
+        <i class="fas fa-file-import me-1"></i>4. Clique em <strong><i class="fas fa-file-import"></i></strong> → importa o .json
+      </div>
+      <i class="fas fa-arrow-right text-muted"></i>
+      <div style="background:#fff1f2;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#e11d48;font-weight:600">
+        <i class="fas fa-file-excel me-1"></i>5. Aba <strong>Compra</strong> → Gerar Planilha .csv
+      </div>
+    </div>
+  </div>`;
+
+  if (!S.stores.length) {
+    html += `<div class="empty-state">
+      <i class="fas fa-store-slash"></i>
+      <h4>Nenhuma loja cadastrada</h4>
+      <p>Clique em <strong>Nova Loja</strong> para começar.</p>
+    </div>`;
+  } else {
+    // Group by level
+    [1,2,3].forEach(lv => {
+      const lvStores = S.stores.filter(st=>(st.regulatorLevel||1)===lv);
+      if (!lvStores.length) return;
+      const info = LV_LABELS[lv];
+      html += `<div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin:16px 0 8px">${info.icon} ${info.name} — ${info.desc}</div>`;
+      lvStores.forEach(st => {
+        html += `<div class="store-card">
+          <div class="store-icon"><i class="fas fa-store"></i></div>
+          <div class="store-info">
+            <div class="store-name">${esc(st.name)} ${lvBadge(lv)}</div>
+            <div class="store-meta">
+              ${st.address ?`<i class="fas fa-map-marker-alt me-1"></i>${esc(st.address)}&ensp;`:''}
+              ${st.phone   ?`<i class="fas fa-phone me-1"></i>${esc(st.phone)}&ensp;`:''}
+              ${st.contact ?`<i class="fas fa-user me-1"></i>${esc(st.contact)}`:''}
+              ${!st.address&&!st.phone&&!st.contact?'<em>Sem informações adicionais</em>':''}
+            </div>
+          </div>
+          <div class="store-actions">
+            <button class="btn btn-sm btn-outline-primary"  title="Exportar formulário de contagem para o gerente" onclick="exportCountingForm('${st.id}')"><i class="fas fa-file-export"></i></button>
+            <label  class="btn btn-sm btn-outline-success mb-0" title="Importar resultado da contagem recebido do gerente" style="cursor:pointer">
+              <i class="fas fa-file-import"></i>
+              <input type="file" accept=".json" style="display:none" onchange="importCountResult(this,'${st.id}')">
+            </label>
+            <button class="btn btn-sm btn-outline-secondary" title="Editar" onclick="openStoreModal('${st.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-outline-danger"   title="Excluir" onclick="deleteStore('${st.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`;
+      });
+    });
+  }
+
+  el.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════
+   STORE MODAL
+═══════════════════════════════════════════ */
+function openStoreModal(id) {
+  S.editingStoreId = id || null;
+  document.getElementById('storeModalTitle').textContent = id ? 'Editar Loja' : 'Cadastrar Loja';
+  const st = id ? S.stores.find(s=>s.id===id) : null;
+  document.getElementById('storeNameInput').value    = st?.name    || '';
+  document.getElementById('storeAddrInput').value    = st?.address || '';
+  document.getElementById('storePhoneInput').value   = st?.phone   || '';
+  document.getElementById('storeContactInput').value = st?.contact || '';
+
+  const lv = st?.regulatorLevel || 1;
+  document.querySelector(`input[name="storeLevel"][value="${lv}"]`).checked = true;
+
+  document.getElementById('storeModal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('storeNameInput').focus(), 80);
+}
+
+function closeStoreModal() {
+  document.getElementById('storeModal').style.display = 'none';
+  S.editingStoreId = null;
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('storeModal')) closeStoreModal();
+}
+
+function saveStore() {
+  const name = document.getElementById('storeNameInput').value.trim();
+  if (!name) {
+    document.getElementById('storeNameInput').classList.add('is-invalid');
+    document.getElementById('storeNameInput').focus();
+    return;
+  }
+  document.getElementById('storeNameInput').classList.remove('is-invalid');
+
+  const lvInput = document.querySelector('input[name="storeLevel"]:checked');
+  const regulatorLevel = parseInt(lvInput?.value || '1');
+
+  const data = {
+    name,
+    address:        document.getElementById('storeAddrInput').value.trim(),
+    phone:          document.getElementById('storePhoneInput').value.trim(),
+    contact:        document.getElementById('storeContactInput').value.trim(),
+    regulatorLevel
+  };
+
+  if (S.editingStoreId) {
+    const idx = S.stores.findIndex(s=>s.id===S.editingStoreId);
+    if (idx>=0) S.stores[idx] = {...S.stores[idx], ...data};
+    toast('Loja atualizada com sucesso!');
+  } else {
+    const nst = {...data, id: Date.now().toString()};
+    S.stores.push(nst);
+    if (S.stores.length===1) S.currentStoreId = nst.id;
+    toast('Loja cadastrada com sucesso!');
+  }
+
+  persist();
+  closeStoreModal();
+  renderAll();
+}
+
+function deleteStore(id) {
+  const st = S.stores.find(s=>s.id===id);
+  if (!st) return;
+  if (!confirm(`Excluir a loja "${st.name}"?\n\nTodo o estoque dela será removido permanentemente.`)) return;
+  S.stores = S.stores.filter(s=>s.id!==id);
+  delete S.stock[id];
+  if (S.currentStoreId===id) S.currentStoreId = S.stores[0]?.id || null;
+  persist();
+  toast('Loja excluída.','fa-trash','#e74c3c');
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT COUNTING FORM
+═══════════════════════════════════════════ */
+function sanitizeFilename(s) {
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,'');
+}
+
+function exportCountingForm(storeId) {
+  const store = S.stores.find(s=>s.id===storeId);
+  if (!store) return;
+  const dateISO = new Date().toISOString().split('T')[0];
+  const dateStr = new Date().toLocaleDateString('pt-BR');
+  const storeNameJs = (store.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+
+  // Build letter/number grids for both jerseys
+  let panels = '';
+  ['JG1','JG2'].forEach(j => {
+    const bg = j==='JG1' ? '#1a1a2e' : '#0f3460';
+    let lg = '<div class="sl">Letras — A até Z</div><div class="gl">';
+    LETTERS.forEach(l => { lg += `<div class="ic"><span class="ch">${l}</span><input id="i${j}L${l}" type="number" min="0" value="0" class="qi"></div>`; });
+    lg += '</div>';
+    let ng = '<div class="sl">Números — 0 a 9</div><div class="gn">';
+    NUMBERS.forEach(n => { ng += `<div class="ic"><span class="ch">${n}</span><input id="i${j}N${n}" type="number" min="0" value="0" class="qi"></div>`; });
+    ng += '</div>';
+    const kit = `<div class="sl">Kit Patrocínio</div>
+    <div class="kb">
+      <div style="flex:1"><strong>Kit Patrocínio Completo</strong></div>
+      <div class="qc">
+        <button class="qb" onclick="adj('${j}',-1)">−</button>
+        <div class="qv" id="k${j}">0</div>
+        <button class="qb" onclick="adj('${j}',1)">+</button>
+      </div>
+    </div>`;
+    panels += `<div class="pn"><div class="ph" style="background:${bg}">👕 Camisa <strong>${j}</strong></div><div class="pb">${lg}${ng}${kit}</div></div>`;
+  });
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contagem — ${esc(store.name)}</title>
+<style>
+*{box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;margin:0;padding:16px}
+.hd{background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;padding:18px 20px;border-radius:12px;margin-bottom:18px}
+.hd h1{margin:0 0 4px;font-size:1.2rem}.hd .sub{opacity:.65;font-size:.82rem}
+.pn{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden}
+.ph{padding:12px 20px;color:#fff;font-size:.95rem}.pb{padding:18px}
+.sl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin:4px 0 10px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin-bottom:18px}
+.gn{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;margin-bottom:18px}
+.ic{display:flex;flex-direction:column;align-items:center;gap:3px}
+.ch{font-size:1rem;font-weight:700;color:#333}
+.qi{width:100%;max-width:60px;text-align:center;border:2px solid #ddd;border-radius:6px;padding:4px 2px;font-size:.88rem;font-weight:600}
+.qi:focus{outline:none;border-color:#e94560}
+.kb{display:flex;align-items:center;gap:16px;padding:14px;background:#f8f9fa;border-radius:10px}
+.qc{display:flex;align-items:center;gap:10px}
+.qb{width:32px;height:32px;border-radius:50%;border:2px solid #ccc;background:#fff;font-size:1.1rem;font-weight:700;cursor:pointer}
+.qv{font-size:1.6rem;font-weight:700;min-width:48px;text-align:center}
+.btn-ok{display:block;width:100%;padding:16px;background:#27ae60;color:#fff;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+.btn-ok:hover{background:#219150}
+.note{text-align:center;font-size:.8rem;color:#aaa;margin-top:10px;padding-bottom:20px}
+@media(max-width:500px){.gn{grid-template-columns:repeat(5,1fr)}}
+</style>
+</head>
+<body>
+<div class="hd"><h1>📦 Contagem de Estoque</h1><div class="sub">${esc(store.name)} &nbsp;|&nbsp; ${dateStr}</div></div>
+${panels}
+<button class="btn-ok" onclick="finish()">✅ Finalizar Contagem — Baixar Resultado</button>
+<p class="note">Após baixar o arquivo .json, envie-o de volta ao responsável pela rede.</p>
+<sc`+`ript>
+const kits={JG1:0,JG2:0};
+const LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const NUMBERS=['0','1','2','3','4','5','6','7','8','9'];
+function adj(j,d){kits[j]=Math.max(0,kits[j]+d);document.getElementById('k'+j).textContent=kits[j];}
+function finish(){
+  const r={storeId:'${store.id}',storeName:'${storeNameJs}',regulatorLevel:${store.regulatorLevel||1},countDate:'${dateISO}',
+    stock:{JG1:{letters:{},numbers:{},kits:0},JG2:{letters:{},numbers:{},kits:0}}};
+  ['JG1','JG2'].forEach(j=>{
+    LETTERS.forEach(l=>{r.stock[j].letters[l]=parseInt(document.getElementById('i'+j+'L'+l)?.value)||0;});
+    NUMBERS.forEach(n=>{r.stock[j].numbers[n]=parseInt(document.getElementById('i'+j+'N'+n)?.value)||0;});
+    r.stock[j].kits=kits[j];
+  });
+  const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='contagem_${sanitizeFilename(store.name)}_${dateISO}.json';a.click();
+  document.querySelector('.btn-ok').textContent='✅ Resultado baixado! Envie o arquivo .json de volta.';
+  document.querySelector('.btn-ok').style.background='#2980b9';
+}
+</sc`+`ript>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `formulario_${sanitizeFilename(store.name)}_${dateISO}.html`;
+  a.click();
+  toast(`Formulário de "${store.name}" exportado! Envie o .html para o gerente.`, 'fa-file-export', '#3498db');
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT COUNT RESULT
+═══════════════════════════════════════════ */
+function importCountResult(input, storeId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.stock || !data.storeId) throw new Error('Formato inválido');
+      S.stock[storeId] = data.stock;
+      persist();
+      renderAll();
+      toast(`Contagem de "${data.storeName}" importada! (${data.countDate})`, 'fa-file-import', '#27ae60');
+    } catch(err) {
+      alert('Erro ao importar: arquivo inválido ou corrompido.\n' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+/* ═══════════════════════════════════════════
+   GENERATE EXCEL REPORT (CSV)
+═══════════════════════════════════════════ */
+function generateReportPorLoja() {
+  const sel = document.getElementById('reportStoreSelect');
+  if (!sel || !sel.value) { alert('Selecione uma loja antes de gerar a planilha.'); return; }
+  const store = S.stores.find(s=>s.id===sel.value);
+  if (!store) return;
+
+  const date    = new Date().toLocaleDateString('pt-BR');
+  const dateISO = new Date().toISOString().split('T')[0];
+  const lvName  = LV_LABELS[store.regulatorLevel||1].name;
+  const rows    = [];
+  const r = (...cols) => rows.push(cols.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(';'));
+
+  r(`PLANILHA DE REPOSIÇÃO — ${store.name}`, date);
+  r(`Nível Regulador: ${lvName}`);
+  r('');
+  r('Item','Camisa','Estoque Atual','Regulador','Déficit','Comprar');
+
+  let hasAny = false;
+  JERSEYS.forEach(j => {
+    allItems().forEach(({type,key,label}) => {
+      const stock = getStock(store.id,j,type,key);
+      const reg   = getRegForStore(store.id,j,type,key);
+      const def   = Math.max(0, reg-stock);
+      if (def>0) { r(label,j,stock,reg,def,def); hasAny=true; }
+    });
+  });
+  if (!hasAny) r('Todos os itens estão dentro do regulador','','','','','');
+
+  const csv  = '﻿' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `reposicao_${sanitizeFilename(store.name)}_${dateISO}.csv`;
+  a.click();
+  toast(`Planilha de "${store.name}" gerada!`, 'fa-file-excel', '#27ae60');
+}
+
+function generateReport() {
+  if (!S.stores.length) { alert('Nenhuma loja cadastrada.'); return; }
+  const date    = new Date().toLocaleDateString('pt-BR');
+  const dateISO = new Date().toISOString().split('T')[0];
+  const rows    = [];
+  const r = (...cols) => rows.push(cols.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(';'));
+
+  r('PLANILHA DE REPOSIÇÃO DE ESTOQUE — TOTAL', date);
+  r('');
+
+  JERSEYS.forEach(j => {
+    const pivotRows = [];
+    allItems().forEach(({type,key,label}) => {
+      const storeDefs = S.stores.map(st => Math.max(0, getRegForStore(st.id,j,type,key) - getStock(st.id,j,type,key)));
+      const total = storeDefs.reduce((s,d)=>s+d,0);
+      if (total > 0) pivotRows.push({label, storeDefs, total});
+    });
+
+    if (!pivotRows.length) return;
+
+    r(`CAMISA ${j}`);
+    r('Item', ...S.stores.map(st=>st.name), 'TOTAL');
+    // sub-linha com nível regulador de cada loja
+    r('(Regulador)', ...S.stores.map(st=>LV_LABELS[st.regulatorLevel||1].name), '');
+    pivotRows.forEach(({label, storeDefs, total}) => {
+      r(label, ...storeDefs.map(d=>d>0?d:''), total);
+    });
+    r('');
+  });
+
+  const csv = '﻿' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `reposicao_total_${dateISO}.csv`;
+  a.click();
+  toast('Planilha total gerada! Abra o .csv no Excel.', 'fa-file-excel', '#27ae60');
+}
+
+/* ═══════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════ */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabId));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id===`pane-${tabId}`));
+  if (tabId==='remanejamento') renderRemanejamento();
+  if (tabId==='compra')        renderCompra();
+}
+
+/* ═══════════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════════ */
+function renderAll() {
+  renderEstoque();
+  renderRegulador();
+  renderLojas();
+  const active = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if (active==='remanejamento') renderRemanejamento();
+  if (active==='compra')        renderCompra();
+}
+
+/* ═══════════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeStoreModal();
+  if (e.key==='Enter' && document.getElementById('storeModal').style.display==='flex') saveStore();
+});
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderAll();
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
+  });
+});
+</script>
+</body>
+</html>
