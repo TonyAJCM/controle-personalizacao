@@ -623,7 +623,7 @@ function renderRegulador() {
       letHtml += `<div class="item-cell">
         <span class="item-char">${l}</span>
         <input type="number" min="0" class="item-input reg-mode" value="${reg}"
-          onchange="doSetReg(${lv},'${j}','letters','${l}',this)">
+          oninput="saveReg(${lv},'${j}','letters','${l}',this)" onchange="doSetReg(${lv},'${j}','letters','${l}',this)">
       </div>`;
     });
     letHtml += `</div>`;
@@ -634,7 +634,7 @@ function renderRegulador() {
       numHtml += `<div class="item-cell">
         <span class="item-char">${n}</span>
         <input type="number" min="0" class="item-input reg-mode" value="${reg}"
-          onchange="doSetReg(${lv},'${j}','numbers','${n}',this)">
+          oninput="saveReg(${lv},'${j}','numbers','${n}',this)" onchange="doSetReg(${lv},'${j}','numbers','${n}',this)">
       </div>`;
     });
     numHtml += `</div>`;
@@ -665,6 +665,11 @@ function renderRegulador() {
 function selectRegLevel(lv) {
   activeRegLevel = lv;
   renderRegulador();
+}
+
+function saveReg(lv, jersey, type, key, input) {
+  const val = Math.max(0, parseInt(input.value)||0);
+  setRegForLevel(lv, jersey, type, key, val);
 }
 
 function doSetReg(lv, jersey, type, key, input) {
