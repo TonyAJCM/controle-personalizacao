@@ -213,6 +213,10 @@ body{background:#f0f2f5;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;}
         <input type="text" id="storeContactInput" class="form-control" placeholder="Nome">
       </div>
     </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold"><i class="fab fa-whatsapp text-success me-1"></i>WhatsApp do Gerente</label>
+      <input type="text" id="storeWhatsInput" class="form-control" placeholder="(00) 00000-0000 — usado para enviar o formulário">
+    </div>
 
     <!-- Regulador Level selector -->
     <div class="mb-3">
@@ -934,11 +938,11 @@ function renderLojas() {
     <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:12px">Fluxo de Contagem por Loja</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <div style="background:#e0f2fe;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#0284c7;font-weight:600">
-        <i class="fas fa-file-export me-1"></i>1. Clique em <strong><i class="fas fa-file-export"></i></strong> → baixa formulário .html
+        <i class="fab fa-whatsapp me-1"></i>1. Clique em <strong><i class="fab fa-whatsapp"></i></strong> → abre WhatsApp automaticamente
       </div>
       <i class="fas fa-arrow-right text-muted"></i>
       <div style="background:#f0fdf4;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#16a34a;font-weight:600">
-        <i class="fas fa-whatsapp me-1"></i>2. Envie o .html para o gerente (WhatsApp/e-mail)
+        <i class="fas fa-paper-plane me-1"></i>2. Envie o .html para o gerente pelo WhatsApp
       </div>
       <i class="fas fa-arrow-right text-muted"></i>
       <div style="background:#fefce8;border-radius:8px;padding:8px 12px;font-size:.82rem;color:#ca8a04;font-weight:600">
@@ -974,14 +978,15 @@ function renderLojas() {
           <div class="store-info">
             <div class="store-name">${esc(st.name)} ${lvBadge(lv)}</div>
             <div class="store-meta">
-              ${st.address ?`<i class="fas fa-map-marker-alt me-1"></i>${esc(st.address)}&ensp;`:''}
-              ${st.phone   ?`<i class="fas fa-phone me-1"></i>${esc(st.phone)}&ensp;`:''}
-              ${st.contact ?`<i class="fas fa-user me-1"></i>${esc(st.contact)}`:''}
-              ${!st.address&&!st.phone&&!st.contact?'<em>Sem informações adicionais</em>':''}
+              ${st.address  ?`<i class="fas fa-map-marker-alt me-1"></i>${esc(st.address)}&ensp;`:''}
+              ${st.phone    ?`<i class="fas fa-phone me-1"></i>${esc(st.phone)}&ensp;`:''}
+              ${st.contact  ?`<i class="fas fa-user me-1"></i>${esc(st.contact)}&ensp;`:''}
+              ${st.whatsapp ?`<i class="fab fa-whatsapp me-1 text-success"></i>${esc(st.whatsapp)}`:''}
+              ${!st.address&&!st.phone&&!st.contact&&!st.whatsapp?'<em>Sem informações adicionais</em>':''}
             </div>
           </div>
           <div class="store-actions">
-            <button class="btn btn-sm btn-outline-primary"  title="Exportar formulário de contagem para o gerente" onclick="exportCountingForm('${st.id}')"><i class="fas fa-file-export"></i></button>
+            <button class="btn btn-sm btn-outline-primary"  title="Enviar formulário de contagem via WhatsApp" onclick="exportCountingForm('${st.id}')"><i class="fab fa-whatsapp"></i></button>
             <label  class="btn btn-sm btn-outline-success mb-0" title="Importar resultado da contagem recebido do gerente" style="cursor:pointer">
               <i class="fas fa-file-import"></i>
               <input type="file" accept=".json" style="display:none" onchange="importCountResult(this,'${st.id}')">
@@ -1004,10 +1009,11 @@ function openStoreModal(id) {
   S.editingStoreId = id || null;
   document.getElementById('storeModalTitle').textContent = id ? 'Editar Loja' : 'Cadastrar Loja';
   const st = id ? S.stores.find(s=>s.id===id) : null;
-  document.getElementById('storeNameInput').value    = st?.name    || '';
-  document.getElementById('storeAddrInput').value    = st?.address || '';
-  document.getElementById('storePhoneInput').value   = st?.phone   || '';
-  document.getElementById('storeContactInput').value = st?.contact || '';
+  document.getElementById('storeNameInput').value    = st?.name     || '';
+  document.getElementById('storeAddrInput').value    = st?.address  || '';
+  document.getElementById('storePhoneInput').value   = st?.phone    || '';
+  document.getElementById('storeContactInput').value = st?.contact  || '';
+  document.getElementById('storeWhatsInput').value   = st?.whatsapp || '';
 
   const lv = st?.regulatorLevel || 1;
   document.querySelector(`input[name="storeLevel"][value="${lv}"]`).checked = true;
@@ -1042,6 +1048,7 @@ function saveStore() {
     address:        document.getElementById('storeAddrInput').value.trim(),
     phone:          document.getElementById('storePhoneInput').value.trim(),
     contact:        document.getElementById('storeContactInput').value.trim(),
+    whatsapp:       document.getElementById('storeWhatsInput').value.trim(),
     regulatorLevel
   };
 
@@ -1081,8 +1088,13 @@ function sanitizeFilename(s) {
     .normalize('NFD').replace(/[̀-ͯ]/g,'')
     .replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,'');
 }
+function normalizeWhatsApp(num) {
+  const d = String(num||'').replace(/\D/g,'');
+  if (!d) return '';
+  return d.length >= 12 ? d : '55' + d;
+}
 
-function exportCountingForm(storeId) {
+async function exportCountingForm(storeId) {
   const store = S.stores.find(s=>s.id===storeId);
   if (!store) return;
   const dateISO = new Date().toISOString().split('T')[0];
@@ -1167,11 +1179,42 @@ function finish(){
 </body></html>`;
 
   const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const filename = `formulario_${sanitizeFilename(store.name)}_${dateISO}.html`;
+
+  // Mobile / modern browser: use Web Share API to open native share sheet (WhatsApp, etc.)
+  if (navigator.share) {
+    try {
+      const file = new File([blob], filename, {type:'text/html'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({
+          title: `Contagem — ${store.name}`,
+          text: `Formulário de contagem de estoque para *${store.name}* (${dateStr}).\nAbra o arquivo no navegador, preencha as quantidades e envie o resultado (.json) de volta. Obrigado!`,
+          files: [file]
+        });
+        toast(`Formulário de "${store.name}" compartilhado!`, 'fa-whatsapp', '#25D366');
+        return;
+      }
+    } catch(err) {
+      if (err.name === 'AbortError') return; // user cancelled the share sheet
+      // fall through to download fallback
+    }
+  }
+
+  // Fallback (desktop / browsers without file sharing): download + open WhatsApp
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `formulario_${sanitizeFilename(store.name)}_${dateISO}.html`;
+  a.download = filename;
   a.click();
-  toast(`Formulário de "${store.name}" exportado! Envie o .html para o gerente.`, 'fa-file-export', '#3498db');
+
+  const waNum = normalizeWhatsApp(store.whatsapp || store.phone || '');
+  const waMsg = encodeURIComponent(
+    `Olá${store.contact ? ', ' + store.contact : ''}! Segue o formulário de contagem de estoque.\n\n` +
+    `📋 *${store.name}* — ${dateStr}\n\n` +
+    `Abra o arquivo *.html* no navegador, preencha as quantidades e envie o arquivo resultado (*.json*) de volta.\n\nObrigado!`
+  );
+  const waUrl = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : `https://wa.me/?text=${waMsg}`;
+  setTimeout(() => window.open(waUrl, '_blank'), 800);
+  toast(`Formulário de "${store.name}" baixado! Abrindo WhatsApp...`, 'fa-whatsapp', '#25D366');
 }
 
 /* ═══════════════════════════════════════════
